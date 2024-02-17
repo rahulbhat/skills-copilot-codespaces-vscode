@@ -1,64 +1,47 @@
-// create web server
- // create a web server, using express
-const express = require('express');
-const app = express();
-app.use(express.static('public'));
-// create a route
-app.get('/comments', function(request, response) {
-  response.end('Here are the comments!');
+// Create web server   
+// 1. Load the http module to create an http server.
+var http = require('http');
+var url = require('url');
+var fs = require('fs');
+var qs = require('querystring');
+var comments = require('./comments.json');
+var server = http.createServer(function (request, response) {
+    var url_parts = url.parse(request.url);
+    if (url_parts.pathname == '/comment') {
+        if (request.method == 'POST') {
+            var body = '';
+            request.on('data', function (data) {
+                body += data;
+                if (body.length > 1e6) {
+                    request.connection.destroy();
+                }
+            });
+            request.on('end', function () {
+                var post = qs.parse(body);
+                comments.push(post);
+                fs.writeFile('comments.json', JSON.stringify(comments), function (err) {
+                    if (err) throw err;
+                    console.log('It\'s saved!');
+                });
+                response.writeHead(200, {
+                    'Content-Type': 'text/plain'
+                });
+                response.end('Thanks for the comment\n');
+            });
+        } else if (request.method == 'GET') {
+            response.writeHead(200, {
+                'Content-Type': 'application/json'
+            });
+            response.end(JSON.stringify(comments));
+        }
+    } else {
+        fs.readFile('index.html', function (err, data) {
+            response.writeHead(200, {
+                'Content-Type': 'text/html'
+            });
+            response.write(data);
+            response.end();
+        });
+    }
 });
-// start the server
-app.listen(3000, function() {
-  console.log('Listening on port 3000');
-});
-// run the server
-// run the server with node comments.js
-// visit the server
-// visit the server in your web browser at http://localhost:3000
-// create a route
-// create a route for /comments that sends back a response
-// create a route
-// create a route for /comments that sends back a response
-app.get('/comments', function(request, response) {
-  response.end('Here are the comments!');
-});
-// start the server
-// start the server with node comments.js
-// visit the server
-// visit the server in your web browser at http://localhost:3000/comments
-// create a route
-// create a route for /comments that sends back a response
-app.get('/comments', function(request, response) {
-  response.end('Here are the comments!');
-});
-// create a route
-// create a route for /about that sends back a response
-app.get('/about', function(request, response) {
-  response.end('This is the about page!');
-});
-// start the server
-// start the server with node comments.js
-// visit the server
-// visit the server in your web browser at http://localhost:3000/about
-// create a route
-// create a route for /comments that sends back a response
-app.get('/comments', function(request, response) {
-  response.end('Here are the comments!');
-});
-// create a route
-// create a route for /about that sends back a response
-app.get('/about', function(request, response) {
-  response.end('This is the about page!');
-});
-// create a route
-// create a route for /hello that sends back a response
-app.get('/hello', function(request, response) {
-  response.end('Hello, world!');
-});
-// start the server
-// start the server with node comments.js
-// visit the server
-// visit the server in your web browser at http://localhost:3000/hello
-// create a route
-// create a route for /comments that sends back a response
-app.get('/comments
+// 4. Listen on port 8000, IP defaults to
